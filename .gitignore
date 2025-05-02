@@ -1,0 +1,16 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store? 
+
+# Terraform generated files #
+######################
+.terraform
+.terraform.lock.hcl
+terraform.tfstate.d
+terraform.tfstate
+terraform.tfstate.backup
+
+# zip file
+######################
+*.zip
