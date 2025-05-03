@@ -1,0 +1,118 @@
+# VPC CIDR
+cidr_block = "10.0.0.0/24"
+
+subnets_list = [
+  {
+    az         = "ap-southeast-2a"
+    cidr_block = "10.0.0.0/26" # 10.0.0.0–10.0.0.63
+    type       = "public"
+  },
+  {
+    az         = "ap-southeast-2b"
+    cidr_block = "10.0.0.64/26" # 10.0.0.64–10.0.0.127
+    type       = "public"
+  },
+  {
+    az         = "ap-southeast-2a"
+    cidr_block = "10.0.0.128/26" # 10.0.0.128–10.0.0.191
+    type       = "private"
+  },
+  {
+    az         = "ap-southeast-2b"
+    cidr_block = "10.0.0.192/26" # 10.0.0.192–10.0.0.255
+    type       = "private"
+  }
+]
+
+nacl_list = [
+  # Public Subnet NACL
+  {
+    name = "public"
+    ingress_rules = [
+      {
+        from_port  = 80
+        to_port    = 80
+        rule_no    = 100
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "0.0.0.0/0" # Internet traffic (restrict in production)
+      },
+      {
+        from_port  = 443
+        to_port    = 443
+        rule_no    = 110
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "0.0.0.0/0"
+      },
+      {
+        from_port  = 8080
+        to_port    = 8080
+        rule_no    = 120
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "0.0.0.0/0"
+      }
+    ]
+    egress_rules = [
+      {
+        from_port  = 0
+        to_port    = 0
+        rule_no    = 100
+        action     = "allow"
+        protocol   = "-1"
+        cidr_block = "0.0.0.0/0"
+      }
+    ]
+  },
+  # Private Subnet NACL
+  {
+    name = "private"
+    ingress_rules = [
+      {
+        from_port  = 80
+        to_port    = 80
+        rule_no    = 100
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "10.0.0.0/25" # Public subnets (including 10.0.0.0/26 and 10.0.0.64/26)
+      },
+      {
+        from_port  = 443
+        to_port    = 443
+        rule_no    = 110
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "10.0.0.0/25"
+      },
+      {
+        from_port  = 8080
+        to_port    = 8080
+        rule_no    = 120
+        action     = "allow"
+        protocol   = "tcp"
+        cidr_block = "10.0.0.0/25"
+      }
+    ]
+    egress_rules = [
+      {
+        from_port  = 0
+        to_port    = 0
+        rule_no    = 100
+        action     = "allow"
+        protocol   = "-1" # All protocols
+        cidr_block = "0.0.0.0/0"
+      }
+    ]
+  }
+]
+
+assign_ipv6_address_on_creation = false
+enable_dns64                    = false
+ipv6_cidr_block                 = null
+ipv6_native                     = false
+
+tags = {
+  Name        = "my-web-app"
+  Environment = "dev"
+}
