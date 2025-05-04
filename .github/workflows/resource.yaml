@@ -1,0 +1,80 @@
+name: Terraform AWS Resources Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_type:
+        description: 'Resource type to manage'
+        required: true
+        type: choice
+        options:
+          - networks
+        default: networks
+      tfvars_file:
+        description: 'Terraform tfvars file'
+        required: true
+        type: choice
+        options:
+          - tfvars/vpc-sydney.tfvar
+        default: tfvars/vpc-sydney.tfvar
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - provision
+          - destroy
+        default: provision
+
+permissions:
+  id-token: write # Required for OIDC authentication
+  contents: read  # Required for checking out the repository
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: development
+    defaults:
+      run:
+        working-directory: resources/${{ inputs.resource_type }}
+    steps:
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Configure AWS credentials using OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GitHubActionsRole
+          aws-region: ap-southeast-2
+          role-session-name: GitHubActionsTerraform
+
+      # Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      # Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Validate Terraform configuration
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Plan Terraform changes
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            --var-file=${{ inputs.tfvars_file }} \
+            -out=tfplan \
+            ${{ inputs.action == 'destroy' && '-destroy' || '' }}
+
+      # Apply or Destroy Terraform changes
+      - name: Terraform Apply or Destroy
+        run: |
+          terraform apply \
+            -auto-approve \
+            tfplan

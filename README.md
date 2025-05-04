@@ -151,9 +151,9 @@ EOF
 
 <BR>
 
-Step 7: Create a file named github-actions-policy.json
+Step 7: Create a file named github-actions-policy.json 
 Run below command on your local machine:
-
+<b> Below Document is for provisioning/destroying network resources only. Other resource module, please reference resource module level README file under /resources folder. </b>
 <b> Please make sure you have replaced below in the policy document. </b>
   - <your_terraform_state_bucket_created_in_step_4>
   - <your_dynamo_db_table_created_in_step_5>
@@ -169,6 +169,7 @@ cat << EOF > github-actions-policy.json
       "Action": [
         "ec2:CreateVpc",
         "ec2:ModifyVpcAttribute",
+        "ec2:DescribeVpcAttribute",
         "ec2:DeleteVpc",
         "ec2:DescribeVpcs",
         "ec2:CreateTags",
@@ -222,6 +223,8 @@ cat << EOF > github-actions-policy.json
         "ec2:AllocateAddress",
         "ec2:ReleaseAddress",
         "ec2:DescribeAddresses",
+        "ec2:DescribeAddressesAttribute",
+        "ec2:DisassociateAddress",
         "ec2:CreateTags",
         "ec2:DeleteTags"
       ],
@@ -247,6 +250,7 @@ cat << EOF > github-actions-policy.json
         "ec2:DeleteNetworkAclEntry",
         "ec2:ReplaceNetworkAclAssociation",
         "ec2:DescribeNetworkAcls",
+        "ec2:DescribeNetworkInterfaces",
         "ec2:CreateTags",
         "ec2:DeleteTags"
       ],
@@ -330,7 +334,7 @@ aws iam attach-role-policy \
 
 <BR>
 
-Step 11: Update Terraform Code (version.tf) to Use S3 Backend and DynamoDB Lock Table
+Step 11: Update Terraform Code (backend.tf) to Use S3 Backend and DynamoDB Lock Table
 
 ```
 terraform {
@@ -359,4 +363,10 @@ terraform {
 }
 ```
 
-## Deployment - Trigger Github Actions workflow manually
+## Provision and Destroy AWS Resource - Trigger Github Actions workflow manually
+* Update .github/workflows/main.yaml playbook to assume your account GitHubActionsRole, alternatively update GithubActions Environments `AWS_ACCOUNT` to your aws account.
+* Go to my project repository via browser. https://github.com/hihinsonli/02Terraform-General-Resources
+* Switch to Actions tab.
+* Select `Terraform AWS Resources Management` workflow on left menu
+* Click `Run workflow` dropdown on the right and select `main` for deployment branch, select resource group to be provisioned or destroyed from `Resource type to manage` dropdown, select target terraform tfvar template from `Terraform tfvars file` dropdown, and finally select terraform action from `Action to perform` dropdown.
+* Click `Run workflow`.
